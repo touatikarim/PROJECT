@@ -118,7 +118,6 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
 
                   var stringBuilder = StringBuilder(step.html_instructions)
                   txt_routes.setHtml(stringBuilder.toString(), HtmlHttpImageGetter(txt_routes))
-
                   builder.setView(step_view)
 
               }
@@ -258,6 +257,14 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
 
         }
     }
+    private fun buildLocationCallback1() {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult?) {
+                mMap.clear()
+                mLastLocation = p0!!.lastLocation
+            }
+        }
+    }
 
 
     private fun buildLocationRequest() {
@@ -355,8 +362,6 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
                     }
 
                     override fun onResponse(call: Call<String>?, response: Response<String>?) {
-                        //myRoutes = Gson().fromJson(response!!.body()!!.toString(), object:TypeToken<MyRoutes>() {}.getType())
-                        //Log.e("json",response!!.body()!!.toString())
                         ParserTask().execute(response!!.body()!!.toString())
 
                     }
@@ -386,7 +391,7 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
 
                     override fun onResponse(call: Call<String>?, response: Response<String>?) {
                         myRoutes = Gson().fromJson(response!!.body()!!.toString(), object:TypeToken<MyRoutes>() {}.getType())
-                        Log.e("json",response!!.body()!!.toString())
+                       //Log.e("json",response!!.body()!!.toString())
                         ParserTask().execute(response!!.body()!!.toString())
 
                     }
@@ -427,6 +432,9 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
 
             fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
                 mLastLocation = location
+
+
+
                 var markerOptions = MarkerOptions()
                         .position(LatLng(mLastLocation.latitude, mLastLocation.longitude))
                         .title("You're here")
@@ -445,10 +453,12 @@ class MapsActivity  : AppCompatActivity(), OnMapReadyCallback {
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 )
                 drawPath1(mLastLocation, Common.currentResult!!.geometry!!.location!!)
-                if (myRoutes != null) {
+                if (myRoutes != null ) {
                     for (step in myRoutes!!.routes!![0].legs!![0].steps!!) {
+                         buildLocationCallback1()
+                        if (mLastLocation.latitude==step.end_location!!.lat && mLastLocation.longitude==step.end_location!!.lng )
                         //get path
-                        drawPath(step.end_location, Common.currentResult!!.geometry!!.location!!)
+                        {drawPath(step.end_location, Common.currentResult!!.geometry!!.location!!)}
 
 
                     }
